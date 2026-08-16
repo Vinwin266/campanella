@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "campanile"
+version = "0.4.0"
+description = "A deterministic workflow orchestration engine with no runtime dependencies"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "rishavrajoz69", email = "Rishavrajoz69@gmail.com" }]
+keywords = ["workflow", "orchestration", "scheduler", "dag", "cron"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Distributed Computing",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/rishavrajoz69/campanile"
+Source = "https://github.com/rishavrajoz69/campanile"
+
+[project.scripts]
+campanile = "campanile.cli.main:main"
+
+[tool.setuptools.packages.find]
+include = ["campanile*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

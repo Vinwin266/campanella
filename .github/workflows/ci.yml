@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: tests (python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # campanile has no dependencies, at runtime or to run its tests, so there
+      # is deliberately nothing to install here.
+      - name: Check every module compiles
+        run: python -m compileall -q campanile tests examples
+
+      - name: Run the test suite
+        run: python -m unittest discover -s tests -t . -v
+
+      - name: Smoke-test the command line
+        run: |
+          python -m campanile --version
+          python -m campanile validate examples/nightly_rollup.py
+          python -m campanile validate examples/reconcile.py
+          python -m campanile plan examples/reconcile.py
+
+      - name: Check a run is reproducible
+        run: |
+          python -m campanile run examples/nightly_rollup.py --param region=eu --json > first.json
+          python -m campanile run examples/nightly_rollup.py --param region=eu --json > second.json
+          diff first.json second.json
+
+  package:
+    name: package metadata
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install from source
+        run: pip install .
+
+      # Import and run from outside the source tree, so a missing package in
+      # pyproject.toml fails here rather than for whoever installs it.
+      - name: Import the installed package
+        run: cd /tmp && python -c "import campanile; print(campanile.VERSION)"
+
+      - name: Run the console script
+        run: cd /tmp && campanile --version
